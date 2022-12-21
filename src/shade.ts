@@ -1,7 +1,7 @@
 import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 
 import { PowerViewHomebridgePlatform } from './platform';
-import { WebShade, setShade } from './powerview';
+import { WebShade, setShade, getShade } from './powerview';
 
 export class Shade {
   private service: Service;
@@ -9,7 +9,7 @@ export class Shade {
   constructor(
     private readonly platform: PowerViewHomebridgePlatform,
     private readonly accessory: PlatformAccessory,
-    private readonly webShade: WebShade,
+    private webShade: WebShade,
   ) {
 
     // set accessory information
@@ -36,7 +36,10 @@ export class Shade {
 
   async getCurrentPosition(): Promise<CharacteristicValue> {
     this.platform.log.debug('Triggered GET CurrentPosition');
-    return 0;
+
+    this.webShade = await getShade(this.webShade);
+
+    return this.webShade.positions.primary;
   }
 
   async getPositionState(): Promise<CharacteristicValue> {

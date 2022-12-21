@@ -4,6 +4,9 @@ type WebShade = {
   id: number;
   ptName: string;
   host: string;
+  positions: {
+    primary: number;
+  };
 };
 
 async function getShades(host: string): Promise<Array<WebShade>> {
@@ -21,8 +24,16 @@ async function setShade(shade: WebShade, position: number) {
   });
 }
 
+async function getShade(shade: WebShade): Promise<WebShade> {
+  return fetch(`${shade.host}/home/shades/${shade.id}`)
+    .then(response => response.json())
+    .then(response => response as WebShade)
+    .then(shade => Object.assign(shade, { host: shade.host }));
+}
+
 export {
   getShades,
+  getShade,
   setShade,
   WebShade,
 };
