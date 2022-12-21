@@ -1,7 +1,7 @@
 import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 
 import { PowerViewHomebridgePlatform } from './platform';
-import { WebShade } from './powerview';
+import { WebShade, setShade } from './powerview';
 
 export class Shade {
   private service: Service;
@@ -52,6 +52,18 @@ export class Shade {
   }
 
   async setTargetPosition(value: CharacteristicValue) {
+    // in homekit land
+    // 100 is open
+    // 0 is closed?
+
+    // in powerview land
+    // 1 is open
+    // 0 is closed
     this.platform.log.debug('Set Target Position -> ', value);
+
+    if (typeof value === 'number') {
+      const newValue = value / 100;
+      await setShade(this.webShade, newValue);
+    }
   }
 }
