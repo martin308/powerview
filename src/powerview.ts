@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+import fetch, { Response } from 'node-fetch';
 
 type WebShade = {
   id: number;
@@ -16,7 +16,7 @@ async function getShades(host: string): Promise<Array<WebShade>> {
     .then(shades => shades.map(shade => Object.assign(shade, { host: host })));
 }
 
-async function setShade(shade: WebShade, position: number) {
+async function setShade(shade: WebShade, position: number): Promise<Response> {
   return fetch(`${shade.host}/home/shades/postitions?ids=${shade.id}`, {
     method: 'PUT',
     body: JSON.stringify({ positions: { primary: position } }),
@@ -28,7 +28,7 @@ async function getShade(shade: WebShade): Promise<WebShade> {
   return fetch(`${shade.host}/home/shades/${shade.id}`)
     .then(response => response.json())
     .then(response => response as WebShade)
-    .then(shade => Object.assign(shade, { host: shade.host }));
+    .then(s => Object.assign(s, { host: shade.host }));
 }
 
 export {
