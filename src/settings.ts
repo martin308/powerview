@@ -6,4 +6,4 @@ export const PLATFORM_NAME = 'PowerView';
 /**
  * This must match the name of your plugin as defined the package.json
  */
-export const PLUGIN_NAME = 'homebridge-powerview';
+export const PLUGIN_NAME = 'homebridge-powerview-v3';
