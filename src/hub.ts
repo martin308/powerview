@@ -2,6 +2,10 @@ import fetch, { Response } from 'node-fetch';
 import { URL } from 'url';
 import EventSource from './eventsource';
 
+interface Logger {
+  error(message: string, ...parameters: any[]): void;
+}
+
 interface Event {
   evt: string;
 }
@@ -53,10 +57,11 @@ class Hub {
   private readonly events: EventSource;
   private readonly shades: Map<number, Shade> = new Map();
 
-  constructor(private readonly host: URL) {
+  constructor(private readonly host: URL, private readonly logger: Logger) {
     const events = new URL('/home/shades/events', host);
     this.events = new EventSource(events);
     this.events.on('event', this.handleEvent.bind(this));
+    this.events.on('error', this.handleError.bind(this));
     this.events.connect();
   }
 
@@ -125,6 +130,10 @@ class Hub {
     if(shade) {
       shade.currentPositions = event.currentPositions;
     }
+  }
+
+  private handleError(error: object | string) {
+    this.logger.error('error', error);
   }
 }
 

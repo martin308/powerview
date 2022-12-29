@@ -29,7 +29,7 @@ export class PowerViewHomebridgePlatform implements DynamicPlatformPlugin {
   ) {
     this.config = config as PowerViewConfig;
     const url = new URL(this.config.Host);
-    this.hub = new Hub(url);
+    this.hub = new Hub(url, this.log);
     this.log.debug('Finished initializing platform:', this.config.name);
 
     // When this event is fired it means Homebridge has restored all cached accessories from disk.

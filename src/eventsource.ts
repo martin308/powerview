@@ -4,6 +4,7 @@ import { URL } from 'url';
 
 declare interface EventSource {
   on(event: 'event', listener: (arg0: object) => void): this;
+  on(event: 'error', listener: (arg0: object | string) => void): this;
 }
 
 class EventSource extends EventEmitter {
