@@ -18,12 +18,14 @@ class EventSource extends EventEmitter {
 
     if(this.req) {
       this.req.removeAllListeners();
+      this.req.destroy();
     }
   }
 
   connect() {
     this.req = request(this.url, this.handleResponse.bind(this));
     this.req.on('error', (err) => this.emit('error', err));
+    this.req.on('abort', () => this.emit('error', 'abort'));
     this.req.on('close', this.handleClose.bind(this));
     this.req.end();
   }
