@@ -9,7 +9,7 @@ export class ShadeAccessory {
   constructor(
     private readonly platform: PowerViewHomebridgePlatform,
     private readonly accessory: PlatformAccessory,
-    private shade: Shade,
+    private readonly shade: Shade,
   ) {
 
     // set accessory information
@@ -46,13 +46,10 @@ export class ShadeAccessory {
     switch (true) {
       case this.shade.currentPositions.primary > this.shade.targetPositions.primary:
         return this.platform.Characteristic.PositionState.INCREASING;
-        break;
       case this.shade.currentPositions.primary < this.shade.targetPositions.primary:
         return this.platform.Characteristic.PositionState.DECREASING;
-        break;
       default:
         return this.platform.Characteristic.PositionState.STOPPED;
-        break;
     }
   }
 
