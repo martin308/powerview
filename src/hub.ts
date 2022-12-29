@@ -2,6 +2,14 @@ import fetch, { Response } from 'node-fetch';
 import { URL } from 'url';
 import EventSource from './eventsource';
 
+interface Event {
+  evt: string;
+}
+
+function isAnEvent(obj: object): obj is Event {
+  return obj && 'evt' in obj;
+}
+
 type JSONShade = {
   id: number;
   ptName: string;
@@ -83,21 +91,19 @@ class Hub {
     return shades;
   }
 
-  private handleEvent(obj: any) {
-    if('evt' in obj) {
-      if (typeof obj.evt === 'string') {
-        switch (obj.evt) {
-          case 'motion-started':
-            this.handleMotionStartedEvent(obj as MotionStartedEvent);
-            break;
-          case 'motion-stopped':
-            this.handleMotionStoppedEvent(obj as MotionStoppedEvent);
-            break;
-          case 'shade-offline':
-          case 'shade-online':
-          case 'battery-alert':
-            break;
-        }
+  private handleEvent(obj: object) {
+    if(isAnEvent(obj)) {
+      switch (obj.evt) {
+        case 'motion-started':
+          this.handleMotionStartedEvent(obj as MotionStartedEvent);
+          break;
+        case 'motion-stopped':
+          this.handleMotionStoppedEvent(obj as MotionStoppedEvent);
+          break;
+        case 'shade-offline':
+        case 'shade-online':
+        case 'battery-alert':
+          break;
       }
     }
   }
