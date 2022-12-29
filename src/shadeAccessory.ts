@@ -1,35 +1,35 @@
 import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
+import { Shade } from './hub';
 
 import { PowerViewHomebridgePlatform } from './platform';
-import { WebShade, setShade, getShade } from './powerview';
 
-export class Shade {
-  private service: Service;
+export class ShadeAccessory {
+  private windowCoveringService: Service;
 
   constructor(
     private readonly platform: PowerViewHomebridgePlatform,
     private readonly accessory: PlatformAccessory,
-    private webShade: WebShade,
+    private shade: Shade,
   ) {
 
     // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Default-Manufacturer')
+      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Hunter Douglas')
       .setCharacteristic(this.platform.Characteristic.Model, 'Default-Model')
       .setCharacteristic(this.platform.Characteristic.SerialNumber, 'Default-Serial');
 
-    this.service = this.accessory.getService(this.platform.Service.WindowCovering) ||
+    this.windowCoveringService = this.accessory.getService(this.platform.Service.WindowCovering) ||
       this.accessory.addService(this.platform.Service.WindowCovering);
 
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.exampleDisplayName);
+    this.windowCoveringService.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.exampleDisplayName);
 
-    this.service.getCharacteristic(this.platform.Characteristic.CurrentPosition)
+    this.windowCoveringService.getCharacteristic(this.platform.Characteristic.CurrentPosition)
       .onGet(this.getCurrentPosition.bind(this));
 
-    this.service.getCharacteristic(this.platform.Characteristic.PositionState)
+    this.windowCoveringService.getCharacteristic(this.platform.Characteristic.PositionState)
       .onGet(this.getPositionState.bind(this));
 
-    this.service.getCharacteristic(this.platform.Characteristic.TargetPosition)
+    this.windowCoveringService.getCharacteristic(this.platform.Characteristic.TargetPosition)
       .onGet(this.getTargetPosition.bind(this))
       .onSet(this.setTargetPosition.bind(this));
   }
@@ -37,24 +37,32 @@ export class Shade {
   async getCurrentPosition(): Promise<CharacteristicValue> {
     this.platform.log.debug('Triggered GET CurrentPosition');
 
-    this.webShade = await getShade(this.webShade);
-
-    return this.webShade.positions.primary;
+    return this.shade.currentPositions.primary * 100;
   }
 
   async getPositionState(): Promise<CharacteristicValue> {
     this.platform.log.debug('Triggered GET PositionState');
 
-    return this.platform.Characteristic.PositionState.STOPPED;
+    switch (true) {
+      case this.shade.currentPositions.primary > this.shade.targetPositions.primary:
+        return this.platform.Characteristic.PositionState.INCREASING;
+        break;
+      case this.shade.currentPositions.primary < this.shade.targetPositions.primary:
+        return this.platform.Characteristic.PositionState.DECREASING;
+        break;
+      default:
+        return this.platform.Characteristic.PositionState.STOPPED;
+        break;
+    }
   }
 
   async getTargetPosition(): Promise<CharacteristicValue> {
     this.platform.log.debug('Triggered GET TargetPosition');
 
-    return 0;
+    return this.shade.targetPositions.primary;
   }
 
-  async setTargetPosition(value: CharacteristicValue) {
+  setTargetPosition(value: CharacteristicValue) {
     // in homekit land
     // 100 is open
     // 0 is closed?
@@ -66,7 +74,7 @@ export class Shade {
 
     if (typeof value === 'number') {
       const newValue = value / 100;
-      await setShade(this.webShade, newValue);
+      this.shade.setTargetPosition({ primary: newValue });
     }
   }
 }

@@ -2,8 +2,9 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, Service, Charact
 
 import { PowerViewConfig } from './config';
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import { Shade } from './shade';
-import { getShades } from './powerview';
+import Hub from './hub';
+import { URL } from 'url';
+import { ShadeAccessory } from './shadeAccessory';
 
 /**
  * HomebridgePlatform
@@ -17,7 +18,9 @@ export class PowerViewHomebridgePlatform implements DynamicPlatformPlugin {
   // this is used to track restored cached accessories
   public readonly accessories: PlatformAccessory[] = [];
 
-  private config: PowerViewConfig;
+  private readonly config: PowerViewConfig;
+
+  private readonly hub: Hub;
 
   constructor(
     public readonly log: Logger,
@@ -25,6 +28,8 @@ export class PowerViewHomebridgePlatform implements DynamicPlatformPlugin {
     public readonly api: API,
   ) {
     this.config = config as PowerViewConfig;
+    const url = new URL(this.config.Host);
+    this.hub = new Hub(url);
     this.log.debug('Finished initializing platform:', this.config.name);
 
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
@@ -59,7 +64,7 @@ export class PowerViewHomebridgePlatform implements DynamicPlatformPlugin {
     // EXAMPLE ONLY
     // A real plugin you would discover accessories from the local network, cloud services
     // or a user-defined array in the platform config.
-    const shades = await getShades(this.config.Host);
+    const shades = await this.hub.getShades();
 
     // loop over the discovered devices and register each one if it has not already been registered
     for (const shade of shades) {
@@ -83,7 +88,7 @@ export class PowerViewHomebridgePlatform implements DynamicPlatformPlugin {
 
         // create the accessory handler for the restored accessory
         // this is imported from `platformAccessory.ts`
-        new Shade(this, existingAccessory, shade);
+        new ShadeAccessory(this, existingAccessory, shade);
 
         // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
         // remove platform accessories when no longer present
@@ -91,10 +96,10 @@ export class PowerViewHomebridgePlatform implements DynamicPlatformPlugin {
         // this.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
       } else {
         // the accessory does not yet exist, so we need to create it
-        this.log.info('Adding new accessory:', shade.ptName);
+        this.log.info('Adding new accessory:', shade.name);
 
         // create a new accessory
-        const accessory = new this.api.platformAccessory(shade.ptName, uuid);
+        const accessory = new this.api.platformAccessory(shade.name, uuid);
 
         // store a copy of the device object in the `accessory.context`
         // the `context` property can be used to store any data about the accessory you may need
@@ -102,7 +107,7 @@ export class PowerViewHomebridgePlatform implements DynamicPlatformPlugin {
 
         // create the accessory handler for the newly create accessory
         // this is imported from `platformAccessory.ts`
-        new Shade(this, accessory, shade);
+        new ShadeAccessory(this, accessory, shade);
 
         // link the accessory to your platform
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
