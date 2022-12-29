@@ -11,8 +11,6 @@ class EventSource extends EventEmitter {
 
   constructor(private readonly url: URL) {
     super();
-
-    this.connect();
   }
 
   close() {
@@ -23,7 +21,7 @@ class EventSource extends EventEmitter {
     }
   }
 
-  private connect() {
+  connect() {
     this.req = request(this.url, this.handleResponse.bind(this));
     this.req.on('error', (err) => this.emit('error', err));
     this.req.on('close', this.handleClose.bind(this));
