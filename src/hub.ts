@@ -27,14 +27,6 @@ type Position = {
   primary: number;
 };
 
-interface Shade {
-  readonly name: string;
-  readonly id: number;
-  getCurrentPosition(): Position;
-  getTargetPosition(): Position;
-  setTargetPosition(position: Position): void;
-}
-
 class Shade implements Shade {
   currentPositions: Position;
   targetPositions: Position;
@@ -42,14 +34,6 @@ class Shade implements Shade {
   constructor(private readonly hub: Hub, readonly id: number, readonly name: string, position: Position) {
     this.currentPositions = position;
     this.targetPositions = position;
-  }
-
-  getCurrentPosition(): Position {
-    return this.currentPositions;
-  }
-
-  getTargetPosition(): Position {
-    return this.targetPositions;
   }
 
   setTargetPosition(position: Position): void {
