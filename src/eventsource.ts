@@ -2,6 +2,10 @@ import { EventEmitter } from 'stream';
 import { request, ClientRequest, IncomingMessage } from 'http';
 import { URL } from 'url';
 
+declare interface EventSource {
+  on(event: 'event', listener: (arg0: object) => void): this;
+}
+
 class EventSource extends EventEmitter {
   private req: ClientRequest | undefined;
 
