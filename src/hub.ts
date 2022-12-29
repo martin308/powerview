@@ -1,4 +1,5 @@
 import fetch, { Response } from 'node-fetch';
+import { EventEmitter } from 'stream';
 import { URL } from 'url';
 import EventSource from './eventsource';
 
@@ -40,17 +41,27 @@ type Position = {
   primary: number;
 };
 
-class Shade implements Shade {
+declare interface Shade {
+  on(event: 'setTargetPosition', listener: (shade: Shade, position: Position) => void): this;
+}
+
+class Shade extends EventEmitter implements Shade {
   currentPositions: Position;
   targetPositions: Position;
 
-  constructor(private readonly hub: Hub, readonly id: number, readonly name: string, position: Position) {
+  constructor(readonly id: number, readonly name: string, position: Position) {
+    super();
+
     this.currentPositions = position;
     this.targetPositions = position;
   }
 
   setTargetPosition(position: Position): void {
-    this.hub.setShades(position, this.id);
+    this.emit('setTargetPosition', this, position);
+  }
+
+  close(): void {
+    this.removeAllListeners();
   }
 }
 
@@ -68,6 +79,10 @@ class Hub {
 
   close() {
     this.events.close();
+
+    this.shades.forEach((shade) => {
+      shade.close();
+    });
   }
 
   async setShades(position: Position, ...ids: number[]): Promise<Response> {
@@ -87,7 +102,9 @@ class Hub {
       .then(response => response as Array<JSONShade>);
 
     const shades = json.map(j => {
-      const shade = new Shade(this, j.id, j.ptName, j.positions);
+      const shade = new Shade(j.id, j.ptName, j.positions);
+
+      shade.on('setTargetPosition', this.setTargetPosition.bind(this));
 
       this.shades.set(j.id, shade);
 
@@ -95,6 +112,10 @@ class Hub {
     });
 
     return shades;
+  }
+
+  private setTargetPosition(shade: Shade, position: Position) {
+    this.setShades(position, shade.id);
   }
 
   private handleEvent(obj: object) {
