@@ -29,6 +29,7 @@ type Position = {
 
 interface Shade {
   readonly name: string;
+  readonly id: number;
   getCurrentPosition(): Position;
   getTargetPosition(): Position;
   setTargetPosition(position: Position): void;
@@ -38,7 +39,7 @@ class Shade implements Shade {
   currentPositions: Position;
   targetPositions: Position;
 
-  constructor(private readonly hub: Hub, private readonly id: number, readonly name: string, position: Position) {
+  constructor(private readonly hub: Hub, readonly id: number, readonly name: string, position: Position) {
     this.currentPositions = position;
     this.targetPositions = position;
   }
