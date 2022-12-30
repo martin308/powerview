@@ -86,7 +86,7 @@ class Hub {
   }
 
   async setShades(position: Position, ...ids: number[]): Promise<Response> {
-    const url = new URL('/home/shades/postitions', this.host);
+    const url = new URL('/home/shades/positions', this.host);
     url.search = `ids=${ids.join(',')}`;
     return fetch(url, {
       method: 'PUT',
