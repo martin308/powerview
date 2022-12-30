@@ -54,7 +54,7 @@ export class ShadeAccessory {
   async getTargetPosition(): Promise<CharacteristicValue> {
     this.platform.log.debug('Triggered GET TargetPosition');
 
-    return this.shade.targetPositions.primary;
+    return this.shade.targetPositions.primary * 100;
   }
 
   setTargetPosition(value: CharacteristicValue) {
