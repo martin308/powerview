@@ -95,11 +95,17 @@ class Hub {
 
     this.logger.info('Calling API -> ', url);
 
-    return fetch(url, {
+    const res = await fetch(url, {
       method: 'PUT',
       body: JSON.stringify({ positions: { primary: position } }),
       headers: {'Content-Type': 'application/json'},
     });
+
+    const body = await res.text();
+
+    this.logger.info('Received Response Body -> ', body);
+
+    return res;
   }
 
   async getShades(): Promise<Array<Shade>> {
