@@ -6,6 +6,8 @@ import EventSource from './eventsource';
 interface Logger {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error(message: string, ...parameters: any[]): void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  info(message: string, ...parameters: any[]): void;
 }
 
 interface Event {
@@ -78,6 +80,8 @@ class Hub {
   }
 
   close() {
+    this.logger.info('Hub is closing');
+
     this.events.close();
 
     this.shades.forEach((shade) => {
@@ -88,6 +92,9 @@ class Hub {
   async setShades(position: Position, ...ids: number[]): Promise<Response> {
     const url = new URL('/home/shades/positions', this.host);
     url.search = `ids=${ids.join(',')}`;
+
+    this.logger.info('Calling API -> ', url);
+
     return fetch(url, {
       method: 'PUT',
       body: JSON.stringify({ positions: { primary: position } }),
@@ -97,6 +104,9 @@ class Hub {
 
   async getShades(): Promise<Array<Shade>> {
     const url = new URL('/home/shades', this.host);
+
+    this.logger.info('Calling API -> ', url);
+
     const json = await fetch(url)
       .then(response => response.json())
       .then(response => response as Array<JSONShade>);
@@ -136,6 +146,8 @@ class Hub {
   }
 
   private handleMotionStartedEvent(event: MotionStartedEvent) {
+    this.logger.info('Handling MotionStartedEvent -> ', event);
+
     const shade = this.shades.get(event.id);
 
     if(shade) {
@@ -147,6 +159,8 @@ class Hub {
   }
 
   private handleMotionStoppedEvent(event: MotionStoppedEvent) {
+    this.logger.info('Handling MotionStoppedEvent -> ', event);
+
     const shade = this.shades.get(event.id);
 
     if(shade) {

@@ -21,8 +21,6 @@ export class ShadeAccessory {
     this.windowCoveringService = this.accessory.getService(this.platform.Service.WindowCovering) ||
       this.accessory.addService(this.platform.Service.WindowCovering);
 
-    this.windowCoveringService.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.exampleDisplayName);
-
     this.windowCoveringService.getCharacteristic(this.platform.Characteristic.CurrentPosition)
       .onGet(this.getCurrentPosition.bind(this));
 
@@ -56,7 +54,7 @@ export class ShadeAccessory {
   async getTargetPosition(): Promise<CharacteristicValue> {
     this.platform.log.debug('Triggered GET TargetPosition');
 
-    return this.shade.targetPositions.primary;
+    return this.shade.targetPositions.primary * 100;
   }
 
   setTargetPosition(value: CharacteristicValue) {

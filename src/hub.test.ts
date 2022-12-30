@@ -41,6 +41,7 @@ describe('hub', () => {
 
     const logger = {
       error: jest.fn(),
+      info: jest.fn(),
     };
 
     const hub = new Hub(host, logger);
