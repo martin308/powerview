@@ -1,7 +1,3 @@
-import {
-  setTimeout,
-} from 'timers/promises';
-
 import { MockServer } from 'jest-mock-server';
 import Hub, { Shade } from './hub';
 
@@ -12,20 +8,20 @@ describe('hub', () => {
   afterAll(() => server.stop());
   beforeEach(() => server.reset());
 
-  // test('shade', () => {
-  //   expect.assertions(2);
+  test('shade', () => {
+    expect.assertions(2);
 
-  //   const shade = new Shade(1, 'test', { primary: 0 });
+    const shade = new Shade(1, 'test', { primary: 0 });
 
-  //   shade.on('setTargetPosition', (shade, position) => {
-  //     expect(shade.id).toEqual(1);
-  //     expect(position.primary).toEqual(1);
-  //   });
+    shade.on('setTargetPosition', (shade, position) => {
+      expect(shade.id).toEqual(1);
+      expect(position.primary).toEqual(1);
+    });
 
-  //   shade.setTargetPosition({ primary: 1 });
+    shade.setTargetPosition({ primary: 1 });
 
-  //   shade.close();
-  // });
+    shade.close();
+  });
 
   test('hub', async () => {
     server.get('/home/shades/events').mockImplementation((ctx) => {
@@ -60,8 +56,6 @@ describe('hub', () => {
     shades = await hub.getShades();
 
     expect(shades).toHaveLength(1);
-
-    // await setTimeout(1000);
 
     expect(route).toHaveBeenCalledTimes(1);
 
