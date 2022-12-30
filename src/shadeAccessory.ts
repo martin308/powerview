@@ -21,8 +21,6 @@ export class ShadeAccessory {
     this.windowCoveringService = this.accessory.getService(this.platform.Service.WindowCovering) ||
       this.accessory.addService(this.platform.Service.WindowCovering);
 
-    this.windowCoveringService.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.exampleDisplayName);
-
     this.windowCoveringService.getCharacteristic(this.platform.Characteristic.CurrentPosition)
       .onGet(this.getCurrentPosition.bind(this));
 
