@@ -114,8 +114,8 @@ class Hub {
     return shades;
   }
 
-  private setTargetPosition(shade: Shade, position: Position) {
-    this.setShades(position, shade.id);
+  private async setTargetPosition(shade: Shade, position: Position) {
+    await this.setShades(position, shade.id);
   }
 
   private handleEvent(obj: object) {
