@@ -58,7 +58,16 @@ describe('hub', () => {
 
     expect(shades).toHaveLength(1);
 
-    expect(route).toHaveBeenCalledTimes(1);
+    expect(route).toHaveBeenCalledWith(
+      expect.objectContaining({
+        originalUrl: '/home/shades/positions?ids=1',
+        method: 'PUT',
+        request: expect.objectContaining({
+          body: { positions: { primary: 1 } },
+        }),
+      }),
+      expect.any(Function),
+    );
 
     hub.close();
   });

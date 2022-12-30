@@ -97,7 +97,7 @@ class Hub {
 
     const res = await fetch(url, {
       method: 'PUT',
-      body: JSON.stringify({ positions: { primary: position } }),
+      body: JSON.stringify({ positions: position }),
       headers: {'Content-Type': 'application/json'},
     });
 
