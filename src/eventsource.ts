@@ -10,12 +10,18 @@ declare interface EventSource {
 class EventSource extends EventEmitter {
   private req: ClientRequest | undefined;
 
+  private readonly timeouts: Array<NodeJS.Timeout> = [];
+
   constructor(private readonly url: URL) {
     super();
   }
 
   close() {
     this.removeAllListeners();
+
+    this.timeouts.forEach(timeout => {
+      clearTimeout(timeout);
+    });
 
     if(this.req) {
       this.req.removeAllListeners();
@@ -36,7 +42,7 @@ class EventSource extends EventEmitter {
       this.req.removeAllListeners();
     }
 
-    setTimeout(this.connect.bind(this), 500);
+    this.timeouts.push(setTimeout(this.connect.bind(this), 500));
   }
 
   private handleResponse(res: IncomingMessage) {
