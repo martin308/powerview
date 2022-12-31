@@ -24,7 +24,7 @@ describe('hub', () => {
     shade.close();
   });
 
-  test('hub', async () => {
+  test('hub batched calls', async () => {
     server.get('/home/shades/events').mockImplementation((ctx) => {
       ctx.status = 200;
     });
@@ -61,6 +61,65 @@ describe('hub', () => {
     expect(route).toHaveBeenCalledWith(
       expect.objectContaining({
         originalUrl: '/home/shades/positions?ids=1,2',
+        method: 'PUT',
+        request: expect.objectContaining({
+          body: { positions: { primary: 1 } },
+        }),
+      }),
+      expect.any(Function),
+    );
+
+    hub.close();
+  });
+
+  test('hub unbatched calls', async () => {
+    server.get('/home/shades/events').mockImplementation((ctx) => {
+      ctx.status = 200;
+    });
+
+    server.get('/home/shades').mockImplementation((ctx) => {
+      ctx.body = JSON.stringify([{ id: 1, ptName: 'first shade' }, { id: 2, ptName: 'second shade' }]);
+      ctx.status = 200;
+    });
+
+    const route = server.put('/home/shades/positions').mockImplementation((ctx) => {
+      ctx.status = 200;
+    });
+
+    const host = server.getURL();
+
+    const logger = {
+      error: jest.fn(),
+      info: jest.fn(),
+    };
+
+    const hub = new Hub(host, logger);
+
+    const shades = await hub.getShades();
+
+    expect(shades).toHaveLength(2);
+
+    shades.forEach((shade, i) => {
+      shade.setTargetPosition({ primary: i });
+    });
+
+    // wait for the batching to take effect
+    await setTimeout(1000);
+
+    expect(route).toHaveBeenCalledWith(
+      expect.objectContaining({
+        originalUrl: '/home/shades/positions?ids=1',
+        method: 'PUT',
+        request: expect.objectContaining({
+          body: { positions: { primary: 0 } },
+        }),
+      }),
+      expect.any(Function),
+    );
+
+    expect(route).toHaveBeenCalledWith(
+      expect.objectContaining({
+        originalUrl: '/home/shades/positions?ids=2',
         method: 'PUT',
         request: expect.objectContaining({
           body: { positions: { primary: 1 } },
