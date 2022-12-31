@@ -71,6 +71,9 @@ class Hub {
   private readonly events: EventSource;
   private readonly shades: Map<number, Shade> = new Map();
 
+  private readonly batch: Array<[Position, Shade]> = [];
+  private batchTimeout: NodeJS.Timeout | undefined;
+
   constructor(private readonly host: URL, private readonly logger: Logger) {
     const events = new URL('/home/shades/events', host);
     this.events = new EventSource(events);
@@ -130,8 +133,38 @@ class Hub {
     return shades;
   }
 
-  private async setTargetPosition(shade: Shade, position: Position) {
-    await this.setShades(position, shade.id);
+  private setTargetPosition(shade: Shade, position: Position) {
+    if(this.batchTimeout) {
+      clearTimeout(this.batchTimeout);
+    }
+
+    this.batch.push([position, shade]);
+
+    this.batchTimeout = setTimeout(this.handleBatch.bind(this), 500, this.batch);
+  }
+
+  private async handleBatch(batch: Array<[Position, Shade]>) {
+    const process = [...batch];
+    batch.length = 0;
+
+    const groups: Map<string, Array<Shade>> = new Map();
+
+    process.forEach(([position, shade]) => {
+      const key = JSON.stringify(position);
+
+      const group = groups.get(key);
+
+      if (group) {
+        group.push(shade);
+      } else {
+        groups.set(key, [shade]);
+      }
+    });
+
+    groups.forEach(async (shades, key) => {
+      const position = JSON.parse(key) as Position;
+      await this.setShades(position, ...shades.map((shade) => shade.id));
+    });
   }
 
   private handleEvent(obj: object) {
