@@ -1,3 +1,4 @@
+import { setTimeout } from 'timers/promises';
 import { MockServer } from 'jest-mock-server';
 import Hub, { Shade } from './hub';
 
@@ -29,7 +30,7 @@ describe('hub', () => {
     });
 
     server.get('/home/shades').mockImplementation((ctx) => {
-      ctx.body = JSON.stringify([{ id: 1, ptName: 'shade name' }]);
+      ctx.body = JSON.stringify([{ id: 1, ptName: 'first shade' }, { id: 2, ptName: 'second shade' }]);
       ctx.status = 200;
     });
 
@@ -46,21 +47,20 @@ describe('hub', () => {
 
     const hub = new Hub(host, logger);
 
-    let shades = await hub.getShades();
+    const shades = await hub.getShades();
 
-    expect(shades).toHaveLength(1);
+    expect(shades).toHaveLength(2);
 
-    const [shade] = shades;
+    shades.forEach(shade => {
+      shade.setTargetPosition({ primary: 1 });
+    });
 
-    shade.setTargetPosition({ primary: 1 });
-
-    shades = await hub.getShades();
-
-    expect(shades).toHaveLength(1);
+    // wait for the batching to take effect
+    await setTimeout(1000);
 
     expect(route).toHaveBeenCalledWith(
       expect.objectContaining({
-        originalUrl: '/home/shades/positions?ids=1',
+        originalUrl: '/home/shades/positions?ids=1,2',
         method: 'PUT',
         request: expect.objectContaining({
           body: { positions: { primary: 1 } },
